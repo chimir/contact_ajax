@@ -1,0 +1,134 @@
+<?php
+/**
+ * @file
+ * A description of what your module does.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function contact_ajax_menu() {
+  $items = array();
+
+  $items['admin/config/user-interface/contact-ajax'] = array(
+    'title' => 'Contact Ajax',
+    'description' => 'Contact ajax form in popup.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('contact_ajax_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'contact_ajax.admin.inc',
+  );
+
+  $items['contact_ajax'] = array(
+    'page callback' => 'contact_ajax_callback',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'delivery callback' => 'ajax_deliver',
+    'theme callback' => 'ajax_base_page_theme',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter():contact-site-form.
+ */
+function contact_ajax_form_contact_site_form_alter(&$form, &$form_state, $form_id) {
+  $form['messages'] = array(
+    '#markup' => '<div id="ajax-forms-messages"></div>',
+    '#weight' => -50,
+  );
+
+  $form['actions']['submit']['#ajax'] = array(
+    'path' => 'contact_ajax',
+  );
+}
+
+/**
+ * Provides ajax callback for form submit
+ */
+function contact_ajax_callback() {
+  module_load_include('inc', 'contact', 'contact.pages');
+
+  list($form, $form_state) = ajax_get_form();
+
+  drupal_process_form($form['#form_id'], $form, $form_state);
+
+  unset($_SESSION['messages']['error']);
+  if (!empty($form_state['executed'])) {
+    $form['subject']['#value'] = '';
+    $form['message']['#value'] = '';
+  }
+
+  $commands = array();
+  $commands[] = ajax_command_replace('#contact-site-form', drupal_render($form));
+  $commands[] = ajax_command_html('#ajax-forms-messages', theme('status_messages'));
+
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function contact_ajax_page_build(&$page) {
+  if (arg(0) != 'contact' && user_access('access site-wide contact form') && !(path_is_admin(current_path()))) {
+    $page['page_bottom']['contact_ajax']['#type'] = 'contact_ajax_widget';
+  }
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function contact_ajax_element_info() {
+  $types = array();
+
+  $types['contact_ajax_widget'] = array(
+    '#input' => FALSE,
+    '#pre_render' => array('contact_ajax_widget_pre_render'),
+    '#position' => variable_get('contact_ajax_position', 'bottom'),
+    // Colors.
+    '#button_bg' => variable_get('contact_ajax_button_bg', '#C2C6E2'),
+    '#button_color' => variable_get('contact_ajax_button_color', '#FFFFFF'),
+    '#title_bg' => variable_get('contact_ajax_title_bg', '#C2C6E2'),
+    '#title_color' => variable_get('contact_ajax_title_color', '#FFFFFF'),
+    '#border_bottom' => variable_get('contact_ajax_border_bottom', '#A7ABC6'),
+  );
+
+  return $types;
+}
+
+function contact_ajax_widget_pre_render($element) {
+  $path = drupal_get_path('module', 'contact_ajax');
+  $element['#theme'] = 'contact_ajax_widget';
+
+  // Contact form.
+  module_load_include('inc', 'contact', 'contact.pages');
+  $form = drupal_get_form('contact_site_form');
+
+  $element['#form'] = drupal_render($form);
+  $element['#button_style'] = 'style="background-color: ' . $element['#button_bg']  . '; color: ' . $element['#button_color']  . ';"';
+  $element['#title_style'] = 'style="background-color: ' . $element['#title_bg']  . '; color: ' . $element['#title_color']  . ';"';
+  $element['#border_bottom'] = 'style="border-bottom-color: ' . $element['#border_bottom']  . ';"';
+
+  $element['#attached'] = array(
+    'js' => array($path . '/js/contact-ajax.js'),
+    'css' => array($path . '/css/contact-ajax.css'),
+    'library' => array(
+      array('system', 'ui.draggable'),
+    ),
+  );
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function contact_ajax_theme() {
+  return array(
+    'contact_ajax_widget' => array(
+      'render element' => 'element',
+      'template' => 'templates/contact_ajax_widget',
+    ),
+  );
+}

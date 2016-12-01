@@ -1,0 +1,32 @@
+#edit-color .fieldset-wrapper {
+  max-width: 50em;
+  position: relative;
+}
+
+#picker {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#edit-palette {
+  min-height: 195px;
+}
+
+#edit-palette label {
+  width: 15em;
+  float: left;
+  clear: left;
+}
+
+#edit-palette .form-item {
+  width: 25em;
+  height: 2em;
+  line-height: 2em;
+  padding-left: 1em;
+  margin: 0.5em 0;
+}
+
+#edit-palette .item-selected {
+  background: #eee;
+}

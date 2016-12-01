@@ -1,0 +1,5 @@
+name = Contact Ajax
+description = Contact ajax form in popup.
+core = 7.x
+configure = admin/config/user-interface/contact-ajax
+dependencies[] = contact

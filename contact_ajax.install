@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function contact_ajax_uninstall() {
+  variable_del('contact_ajax_position');
+  variable_del('contact_ajax_title_bg');
+  variable_del('contact_ajax_title_color');
+  variable_del('contact_ajax_border_bottom');
+  variable_del('contact_ajax_button_bg');
+  variable_del('contact_ajax_button_color');
+}
