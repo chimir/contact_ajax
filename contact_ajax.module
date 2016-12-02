@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * A description of what your module does.
+ * Main file for the Contact Ajax module.
  */
 
 /**
